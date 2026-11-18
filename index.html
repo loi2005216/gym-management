@@ -1,0 +1,640 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ Thống Quản Lý Phòng Gym - gym_management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- MÀN HÌNH ĐĂNG NHẬP (UC01) -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
+                    <i class="fa-solid fa-dumbbell"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-900">GYM MANAGEMENT</h1>
+                <p class="text-sm text-slate-500 mt-1">Kết nối trực tiếp CSDL MySQL (phpMyAdmin)</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Tên đăng nhập</label>
+                    <input type="text" id="login-user" required value="admin" class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Mật khẩu</label>
+                    <input type="password" id="login-pass" required value="123456" class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                </div>
+                <div id="login-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-xl"></div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md">
+                    Đăng Nhập Hệ Thống
+                </button>
+            </form>
+            <div class="mt-5 pt-4 border-t text-xs text-slate-500 flex justify-between">
+                <button type="button" onclick="fillDemo('admin','123456')" class="text-emerald-700 font-semibold hover:underline">Tài khoản Admin (admin/123456)</button>
+                <button type="button" onclick="fillDemo('letan01','123456')" class="text-blue-700 font-semibold hover:underline">Tài khoản Lễ tân (letan01/123456)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GIAO DIỆN CHÍNH -->
+    <div id="app-screen" class="hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
+            <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-xl">
+                    <i class="fa-solid fa-dumbbell"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-white leading-tight">GYM PRO</div>
+                    <div class="text-xs text-emerald-400">MySQL Connected</div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-3 space-y-1 text-sm">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-600 text-white font-medium">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Tổng quan
+                </button>
+                <button onclick="switchTab('members')" data-tab="members" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800">
+                    <i class="fa-solid fa-users w-5"></i> Quản lý hội viên
+                </button>
+                <button onclick="switchTab('packages')" data-tab="packages" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800">
+                    <i class="fa-solid fa-box-open w-5"></i> Gói tập
+                </button>
+                <button onclick="switchTab('registrations')" data-tab="registrations" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800">
+                    <i class="fa-solid fa-file-invoice-dollar w-5"></i> Đăng ký & Thanh toán
+                </button>
+                <button onclick="switchTab('attendance')" data-tab="attendance" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800">
+                    <i class="fa-solid fa-clipboard-user w-5"></i> Điểm danh Check-in
+                </button>
+                <button id="nav-reports" onclick="switchTab('reports')" data-tab="reports" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800">
+                    <i class="fa-solid fa-chart-line w-5"></i> Thống kê & Báo cáo
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800">
+                <div class="text-sm font-semibold text-white" id="current-user-name">Admin</div>
+                <div class="text-xs text-emerald-400 mb-3" id="current-user-role">Quản trị viên</div>
+                <button onclick="logout()" class="w-full py-2 bg-slate-800 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Đăng xuất
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="page-title" class="text-2xl font-bold text-slate-800">Tổng Quan Hệ Thống</h2>
+                <button onclick="loadAllData()" class="px-3 py-1.5 bg-white border rounded-lg text-xs font-semibold hover:bg-slate-50 shadow-sm">
+                    <i class="fa-solid fa-rotate mr-1 text-emerald-600"></i> Đồng bộ MySQL
+                </button>
+            </div>
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-section space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+                        <div class="text-xs text-slate-500 font-semibold uppercase">Tổng Hội Viên</div>
+                        <div class="text-3xl font-extrabold text-slate-900 mt-1" id="stat-members">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+                        <div class="text-xs text-slate-500 font-semibold uppercase">Gói Đang Hoạt Động</div>
+                        <div class="text-3xl font-extrabold text-emerald-600 mt-1" id="stat-active-subs">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+                        <div class="text-xs text-slate-500 font-semibold uppercase">Tổng Doanh Thu</div>
+                        <div class="text-2xl font-extrabold text-blue-600 mt-1" id="stat-revenue">0 đ</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border">
+                        <div class="text-xs text-slate-500 font-semibold uppercase">Đang Tập Tại Phòng</div>
+                        <div class="text-3xl font-extrabold text-amber-600 mt-1" id="stat-in-gym">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: HỘI VIÊN (UC02) -->
+            <section id="tab-members" class="tab-section hidden space-y-4">
+                <div class="flex flex-wrap justify-between gap-3 bg-white p-4 rounded-2xl shadow-sm border">
+                    <input type="text" id="search-member" oninput="renderMembers()" placeholder="Tìm theo tên hoặc số điện thoại..." class="px-4 py-2 border rounded-xl text-sm w-72 outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <button onclick="openMemberModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                        + Thêm Hội Viên Mới
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b text-slate-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Mã HV</th>
+                                <th class="p-4">Họ Tên</th>
+                                <th class="p-4">Giới Tính / Ngày Sinh</th>
+                                <th class="p-4">Số Điện Thoại</th>
+                                <th class="p-4">Địa Chỉ</th>
+                                <th class="p-4">Trạng Thái</th>
+                                <th class="p-4 text-right">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-members" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 3: GÓI TẬP (UC06) -->
+            <section id="tab-packages" class="tab-section hidden space-y-4">
+                <div class="flex justify-end">
+                    <button id="btn-add-pkg" onclick="openPackageModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                        + Thêm Gói Tập Mới
+                    </button>
+                </div>
+                <div id="grid-packages" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            </section>
+
+            <!-- TAB 4: ĐĂNG KÝ & THANH TOÁN (UC03) -->
+            <section id="tab-registrations" class="tab-section hidden space-y-4">
+                <div class="flex justify-end">
+                    <button onclick="openRegisterModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                        + Đăng Ký Gói Tập Mới
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b text-slate-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Mã ĐK</th>
+                                <th class="p-4">Hội Viên</th>
+                                <th class="p-4">Gói Tập</th>
+                                <th class="p-4">Thời Hạn</th>
+                                <th class="p-4">Đã Thu / Tổng Tiền</th>
+                                <th class="p-4">Trạng Thái</th>
+                                <th class="p-4 text-right">Thanh Toán</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-registrations" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 5: ĐIỂM DANH (UC04) -->
+            <section id="tab-attendance" class="tab-section hidden space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border flex flex-wrap gap-3 items-center">
+                    <input type="text" id="checkin-keyword" placeholder="Nhập Mã hội viên (VD: 1) hoặc SĐT..." class="px-4 py-2.5 border rounded-xl text-sm w-80 outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <button onclick="handleCheckin()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Ghi Nhận Check-in
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b text-slate-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Mã ĐD</th>
+                                <th class="p-4">Hội Viên</th>
+                                <th class="p-4">SĐT</th>
+                                <th class="p-4">Giờ Vào (Check-in)</th>
+                                <th class="p-4">Giờ Ra (Check-out)</th>
+                                <th class="p-4 text-right">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-attendance" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 6: THỐNG KÊ BÁO CÁO (UC05 - CHỈ ADMIN) -->
+            <section id="tab-reports" class="tab-section hidden space-y-4">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">Biểu Đồ Doanh Thu Theo Gói Tập</h3>
+                    <div class="h-72">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL HỘI VIÊN -->
+    <div id="modal-member" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-lg font-bold" id="modal-member-title">Thêm Hội Viên</h3>
+            <input type="hidden" id="hv-id" />
+            <input type="text" id="hv-name" placeholder="Họ và tên *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <div class="grid grid-cols-2 gap-3">
+                <input type="date" id="hv-dob" class="w-full px-3 py-2 border rounded-xl text-sm" />
+                <select id="hv-gender" class="w-full px-3 py-2 border rounded-xl text-sm">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+            <input type="text" id="hv-phone" placeholder="Số điện thoại (Duy nhất) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <input type="email" id="hv-email" placeholder="Email" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <input type="text" id="hv-address" placeholder="Địa chỉ" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <select id="hv-status" class="w-full px-3 py-2 border rounded-xl text-sm">
+                <option value="HOAT_DONG">Hoạt động</option>
+                <option value="TAM_KHOA">Tạm khóa</option>
+            </select>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-member')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
+                <button onclick="saveMember()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Lưu CSDL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GÓI TẬP -->
+    <div id="modal-package" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-lg font-bold">Thông Tin Gói Tập</h3>
+            <input type="hidden" id="pkg-id" />
+            <input type="text" id="pkg-name" placeholder="Tên gói tập *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" id="pkg-months" placeholder="Thời hạn (tháng) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+                <input type="number" id="pkg-price" placeholder="Giá tiền (VNĐ) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            </div>
+            <textarea id="pkg-desc" placeholder="Mô tả quyền lợi gói tập" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+            <select id="pkg-status" class="w-full px-3 py-2 border rounded-xl text-sm">
+                <option value="HOAT_DONG">Đang bán</option>
+                <option value="NGUNG_BAN">Ngừng bán</option>
+            </select>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-package')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
+                <button onclick="savePackage()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Lưu Gói Tập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG KÝ GÓI -->
+    <div id="modal-register" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-lg font-bold">Đăng Ký Gói Tập Mới</h3>
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Chọn Hội Viên</label>
+                <select id="reg-hv" class="w-full px-3 py-2 border rounded-xl text-sm mt-1"></select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Chọn Gói Tập</label>
+                <select id="reg-goi" onchange="updateRegPrice()" class="w-full px-3 py-2 border rounded-xl text-sm mt-1"></select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Ngày Bắt Đầu</label>
+                <input type="date" id="reg-start" class="w-full px-3 py-2 border rounded-xl text-sm mt-1" />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Số Tiền Thu Ngay (Để 0 nếu tạo phiếu chờ thu phí)</label>
+                <input type="number" id="reg-paid" value="0" class="w-full px-3 py-2 border rounded-xl text-sm mt-1" />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Phương Thức Thanh Toán</label>
+                <select id="reg-method" class="w-full px-3 py-2 border rounded-xl text-sm mt-1">
+                    <option value="TIEN_MAT">Tiền mặt</option>
+                    <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                    <option value="THE">Quẹt thẻ</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modal-register')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
+                <button onclick="saveRegister()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Xác Nhận Đăng Ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THU PHÍ BỔ SUNG -->
+    <div id="modal-payment" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4">
+            <h3 class="text-lg font-bold">Ghi Nhận Thanh Toán</h3>
+            <input type="hidden" id="pay-dk-id" />
+            <div class="text-sm text-slate-600" id="pay-info"></div>
+            <input type="number" id="pay-amount" placeholder="Số tiền thu (VNĐ)" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <select id="pay-method" class="w-full px-3 py-2 border rounded-xl text-sm">
+                <option value="TIEN_MAT">Tiền mặt</option>
+                <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                <option value="THE">Quẹt thẻ</option>
+            </select>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-payment')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
+                <button onclick="submitPayment()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Xác Nhận Thu Tiền</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let currentUser = null;
+    let db = { hoi_vien: [], goi_tap: [], dang_ky_goi: [], thanh_toan: [], diem_danh: [] };
+    let chartInstance = null;
+
+    const fmtMoney = (n) => Number(n || 0).toLocaleString('vi-VN') + ' đ';
+
+    function fillDemo(u, p) {
+      document.getElementById('login-user').value = u;
+      document.getElementById('login-pass').value = p;
+    }
+
+    // UC01: Đăng nhập
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-user').value;
+      const password = document.getElementById('login-pass').value;
+      const errBox = document.getElementById('login-error');
+      errBox.classList.add('hidden');
+
+      const res = await fetch('api/auth.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+        const text = await res.text();
+        const data = JSON.parse(text.trim().replace(/^\uFEFF/, ''));
+      if (!data.success) {
+        errBox.textContent = data.message;
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      currentUser = data.user;
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+      document.getElementById('current-user-name').textContent = currentUser.ho_ten;
+      document.getElementById('current-user-role').textContent = currentUser.vai_tro === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên lễ tân';
+
+      // Phân quyền Lễ tân vs Admin
+      const isAdmin = currentUser.vai_tro === 'ADMIN';
+      document.getElementById('nav-reports').classList.toggle('hidden', !isAdmin);
+      document.getElementById('btn-add-pkg').classList.toggle('hidden', !isAdmin);
+
+      await loadAllData();
+    });
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('app-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    async function loadAllData() {
+      const res = await fetch('api/data.php');
+      db = await res.json();
+      renderDashboard();
+      renderMembers();
+      renderPackages();
+      renderRegistrations();
+      renderAttendance();
+      if (currentUser?.vai_tro === 'ADMIN') renderChart();
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        if (btn.dataset.tab === tab) btn.classList.add('bg-emerald-600', 'text-white');
+      });
+      const titles = {
+        dashboard: 'Tổng Quan Hệ Thống',
+        members: 'Quản Lý Hội Viên',
+        packages: 'Danh Mục Gói Tập',
+        registrations: 'Đăng Ký Gói & Thanh Toán',
+        attendance: 'Điểm Danh Check-in / Check-out',
+        reports: 'Thống Kê & Báo Cáo Doanh Thu'
+      };
+      document.getElementById('page-title').textContent = titles[tab];
+    }
+
+    function renderDashboard() {
+      document.getElementById('stat-members').textContent = db.hoi_vien.length;
+      document.getElementById('stat-active-subs').textContent = db.dang_ky_goi.filter(d => d.trang_thai === 'HOAT_DONG').length;
+      const rev = db.thanh_toan.filter(t => t.trang_thai === 'THANH_CONG').reduce((s, t) => s + Number(t.so_tien), 0);
+      document.getElementById('stat-revenue').textContent = fmtMoney(rev);
+      document.getElementById('stat-in-gym').textContent = db.diem_danh.filter(d => !d.thoi_gian_ra).length;
+    }
+
+    // UC02: Hội viên
+    function renderMembers() {
+      const kw = document.getElementById('search-member').value.toLowerCase();
+      const list = db.hoi_vien.filter(m => m.ho_ten.toLowerCase().includes(kw) || m.so_dien_thoai.includes(kw));
+      document.getElementById('table-members').innerHTML = list.map(m => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-bold text-emerald-700">#HV${m.ma_hv}</td>
+          <td class="p-4 font-semibold">${m.ho_ten}</td>
+          <td class="p-4 text-slate-500">${m.gioi_tinh || ''} • ${m.ngay_sinh || ''}</td>
+          <td class="p-4 font-mono">${m.so_dien_thoai}</td>
+          <td class="p-4 text-slate-500">${m.dia_chi || ''}</td>
+          <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${m.trang_thai}</span></td>
+          <td class="p-4 text-right">
+            <button onclick='openMemberModal(${JSON.stringify(m)})' class="text-blue-600 hover:underline font-semibold text-xs">Sửa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openMemberModal(m = null) {
+      document.getElementById('modal-member-title').textContent = m ? 'Cập Nhật Hội Viên' : 'Thêm Hội Viên Mới';
+      document.getElementById('hv-id').value = m ? m.ma_hv : '';
+      document.getElementById('hv-name').value = m ? m.ho_ten : '';
+      document.getElementById('hv-dob').value = m ? (m.ngay_sinh || '') : '';
+      document.getElementById('hv-gender').value = m ? (m.gioi_tinh || 'Nam') : 'Nam';
+      document.getElementById('hv-phone').value = m ? m.so_dien_thoai : '';
+      document.getElementById('hv-email').value = m ? (m.email || '') : '';
+      document.getElementById('hv-address').value = m ? (m.dia_chi || '') : '';
+      document.getElementById('hv-status').value = m ? m.trang_thai : 'HOAT_DONG';
+      document.getElementById('modal-member').classList.remove('hidden');
+    }
+
+    async function saveMember() {
+      const payload = {
+        action: 'save_member',
+        ma_hv: document.getElementById('hv-id').value || null,
+        ho_ten: document.getElementById('hv-name').value,
+        ngay_sinh: document.getElementById('hv-dob').value,
+        gioi_tinh: document.getElementById('hv-gender').value,
+        so_dien_thoai: document.getElementById('hv-phone').value,
+        email: document.getElementById('hv-email').value,
+        dia_chi: document.getElementById('hv-address').value,
+        trang_thai: document.getElementById('hv-status').value
+      };
+      const res = await fetch('api/hoi_vien.php', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) { closeModal('modal-member'); loadAllData(); }
+    }
+
+    // UC06: Gói tập
+    function renderPackages() {
+      const isAdmin = currentUser?.vai_tro === 'ADMIN';
+      document.getElementById('grid-packages').innerHTML = db.goi_tap.map(p => `
+        <div class="bg-white p-5 rounded-2xl shadow-sm border flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <h4 class="font-bold text-lg text-slate-900">${p.ten_goi}</h4>
+              <span class="px-2 py-0.5 rounded text-xs font-semibold ${p.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">${p.trang_thai}</span>
+            </div>
+            <div class="text-2xl font-extrabold text-emerald-600 my-2">${fmtMoney(p.gia)} <span class="text-xs font-normal text-slate-500">/ ${p.thoi_han_thang} tháng</span></div>
+            <p class="text-sm text-slate-600">${p.mo_ta || ''}</p>
+          </div>
+          ${isAdmin ? `<button onclick='openPackageModal(${JSON.stringify(p)})' class="mt-4 w-full py-2 border rounded-xl text-xs font-semibold hover:bg-slate-50">Chỉnh sửa gói</button>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openPackageModal(p = null) {
+      document.getElementById('pkg-id').value = p ? p.ma_goi : '';
+      document.getElementById('pkg-name').value = p ? p.ten_goi : '';
+      document.getElementById('pkg-months').value = p ? p.thoi_han_thang : 1;
+      document.getElementById('pkg-price').value = p ? p.gia : '';
+      document.getElementById('pkg-desc').value = p ? (p.mo_ta || '') : '';
+      document.getElementById('pkg-status').value = p ? p.trang_thai : 'HOAT_DONG';
+      document.getElementById('modal-package').classList.remove('hidden');
+    }
+
+    async function savePackage() {
+      const payload = {
+        action: 'save_package',
+        ma_goi: document.getElementById('pkg-id').value || null,
+        ten_goi: document.getElementById('pkg-name').value,
+        thoi_han_thang: document.getElementById('pkg-months').value,
+        gia: document.getElementById('pkg-price').value,
+        mo_ta: document.getElementById('pkg-desc').value,
+        trang_thai: document.getElementById('pkg-status').value
+      };
+      const res = await fetch('api/hoi_vien.php', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) { closeModal('modal-package'); loadAllData(); }
+    }
+
+    // UC03: Đăng ký & Thanh toán
+    function renderRegistrations() {
+      document.getElementById('table-registrations').innerHTML = db.dang_ky_goi.map(d => {
+        const remain = Number(d.tong_tien) - Number(d.da_thanh_toan);
+        return `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-bold">#DK${d.ma_dk}</td>
+          <td class="p-4"><div class="font-semibold">${d.ten_hv}</div><div class="text-xs text-slate-500">${d.so_dien_thoai}</div></td>
+          <td class="p-4 font-medium">${d.ten_goi}</td>
+          <td class="p-4 text-xs">${d.ngay_bat_dau} → ${d.ngay_ket_thuc}</td>
+          <td class="p-4 font-semibold"><span class="text-emerald-600">${fmtMoney(d.da_thanh_toan)}</span> / ${fmtMoney(d.tong_tien)}</td>
+          <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${d.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${d.trang_thai}</span></td>
+          <td class="p-4 text-right">
+            ${remain > 0 ? `<button onclick="openPaymentModal(${d.ma_dk}, ${remain})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold">Thu thêm (${fmtMoney(remain)})</button>` : '<span class="text-xs text-emerald-600 font-semibold">Đã đủ tiền</span>'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function openRegisterModal() {
+      document.getElementById('reg-hv').innerHTML = db.hoi_vien.map(h => `<option value="${h.ma_hv}">#HV${h.ma_hv} - ${h.ho_ten} (${h.so_dien_thoai})</option>`).join('');
+      const activePkgs = db.goi_tap.filter(g => g.trang_thai === 'HOAT_DONG');
+      document.getElementById('reg-goi').innerHTML = activePkgs.map(g => `<option value="${g.ma_goi}" data-price="${g.gia}">${g.ten_goi} - ${fmtMoney(g.gia)}</option>`).join('');
+      document.getElementById('reg-start').value = new Date().toISOString().split('T')[0];
+      updateRegPrice();
+      document.getElementById('modal-register').classList.remove('hidden');
+    }
+
+    function updateRegPrice() {
+      const sel = document.getElementById('reg-goi');
+      const price = sel.options[sel.selectedIndex]?.dataset?.price || 0;
+      document.getElementById('reg-paid').value = price;
+    }
+
+    async function saveRegister() {
+      const payload = {
+        action: 'create_register',
+        ma_hv: document.getElementById('reg-hv').value,
+        ma_goi: document.getElementById('reg-goi').value,
+        ma_nv: currentUser.ma_nv,
+        ngay_bat_dau: document.getElementById('reg-start').value,
+        so_tien_thu: document.getElementById('reg-paid').value,
+        phuong_thuc: document.getElementById('reg-method').value
+      };
+      const res = await fetch('api/dang_ky.php', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) { closeModal('modal-register'); loadAllData(); }
+    }
+
+    function openPaymentModal(ma_dk, remain) {
+      document.getElementById('pay-dk-id').value = ma_dk;
+      document.getElementById('pay-info').textContent = `Số tiền còn thiếu của phiếu #DK${ma_dk}: ${fmtMoney(remain)}`;
+      document.getElementById('pay-amount').value = remain;
+      document.getElementById('modal-payment').classList.remove('hidden');
+    }
+
+    async function submitPayment() {
+      const payload = {
+        action: 'add_payment',
+        ma_dk: document.getElementById('pay-dk-id').value,
+        ma_nv: currentUser.ma_nv,
+        so_tien: document.getElementById('pay-amount').value,
+        phuong_thuc: document.getElementById('pay-method').value
+      };
+      const res = await fetch('api/dang_ky.php', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) { closeModal('modal-payment'); loadAllData(); }
+    }
+
+    // UC04: Điểm danh
+    function renderAttendance() {
+      document.getElementById('table-attendance').innerHTML = db.diem_danh.map(a => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-bold">#DD${a.ma_dd}</td>
+          <td class="p-4 font-semibold">${a.ten_hv}</td>
+          <td class="p-4 font-mono">${a.so_dien_thoai}</td>
+          <td class="p-4 text-emerald-700 font-medium">${a.thoi_gian_vao}</td>
+          <td class="p-4">${a.thoi_gian_ra || '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Đang tập...</span>'}</td>
+          <td class="p-4 text-right">
+            ${!a.thoi_gian_ra ? `<button onclick="handleCheckout(${a.ma_dd})" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-semibold">Check-out</button>` : '<span class="text-xs text-slate-400">Hoàn tất</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function handleCheckin() {
+      const keyword = document.getElementById('checkin-keyword').value;
+      const res = await fetch('api/diem_danh.php', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'checkin', keyword, ma_nv: currentUser.ma_nv })
+      });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) { document.getElementById('checkin-keyword').value = ''; loadAllData(); }
+    }
+
+    async function handleCheckout(ma_dd) {
+      const res = await fetch('api/diem_danh.php', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'checkout', ma_dd })
+      });
+      const data = await res.json();
+      if (data.success) loadAllData();
+    }
+
+    // UC05: Biểu đồ doanh thu
+    function renderChart() {
+      const map = {};
+      db.thanh_toan.filter(t => t.trang_thai === 'THANH_CONG').forEach(t => {
+        map[t.ten_goi] = (map[t.ten_goi] || 0) + Number(t.so_tien);
+      });
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(map),
+          datasets: [{ label: 'Doanh thu (VNĐ)', data: Object.values(map), backgroundColor: '#10b981', borderRadius: 8 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
