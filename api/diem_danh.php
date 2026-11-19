@@ -20,7 +20,31 @@ if ($action === 'checkin') {
         echo json_encode(["success" => false, "message" => "Tài khoản hội viên đang bị tạm khóa!"]);
         exit;
     }
+    $ma_hv = $hv['ma_hv'];
 
+    // 1. Kiểm tra hội viên còn gói tập hợp lệ không (tùy chỉnh theo tên bảng gói tập của bạn)
+    $stmtGoi = $conn->prepare("SELECT * FROM dang_ky_goi WHERE ma_hv = ? AND ngay_ket_thuc >= CURDATE() ORDER BY ngay_ket_thuc DESC LIMIT 1");
+    $stmtGoi->execute([$ma_hv]);
+    $goi = $stmtGoi->fetch();
+
+    if (!$goi) {
+        echo json_encode(["success" => false, "message" => "Hội viên chưa đăng ký gói tập hoặc gói đã hết hạn!"]);
+        exit;
+    }
+
+    // 2. Lưu lịch sử điểm danh vào database (kiểm tra lại tên bảng và tên các cột cho khớp phpMyAdmin)
+    $stmtInsert = $conn->prepare("INSERT INTO diem_danh (ma_hv, ma_nv, thoi_gian_vao) VALUES (?, ?, NOW())");
+    if ($stmtInsert->execute([$ma_hv, $ma_nv])) {
+        echo json_encode([
+            "success" => true,
+            "message" => "Điểm danh thành công!",
+            "hoi_vien" => $hv
+        ]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Lỗi khi lưu dữ liệu điểm danh!"]);
+    }
+}
+?>
     // Kiểm tra gói tập còn hạn & đang hoạt động (Quy tắc 04)
     $today = date('Y-m-d');
     $stmtGoi = $conn->prepare("SELECT * FROM dang_ky_goi WHERE ma_hv = ? AND trang_thai = 'HOAT_DONG' AND ngay_ket_thuc >= ? LIMIT 1");
