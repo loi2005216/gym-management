@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hệ Thống Quản Lý Phòng Gym - gym_management</title>
+    <title>Hệ Thống Quản Lý Phòng Gym</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
         body {
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
@@ -36,22 +35,26 @@
                     <i class="fa-solid fa-dumbbell"></i>
                 </div>
                 <h1 class="text-2xl font-extrabold text-slate-900">GYM MANAGEMENT</h1>
-                <p class="text-sm text-slate-500 mt-1">Kết nối trực tiếp CSDL MySQL (phpMyAdmin)</p>
+                <p class="text-sm text-slate-500 mt-1">Hệ thống quản lý phòng tập & hội viên</p>
             </div>
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" autocomplete="off" class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold mb-1">Tên đăng nhập</label>
-                    <input type="text" id="login-user" required class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <input type="text" id="login-user" required autocomplete="off" placeholder="Nhập tên đăng nhập..." class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
                 </div>
                 <div>
                     <label class="block text-sm font-semibold mb-1">Mật khẩu</label>
-                    <input type="password" id="login-pass" required class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <input type="password" id="login-pass" required autocomplete="new-password" placeholder="Nhập mật khẩu..." class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
                 </div>
                 <div id="login-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-xl"></div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md">
                     Đăng Nhập Hệ Thống
                 </button>
             </form>
+            <div class="mt-5 pt-4 border-t text-xs text-slate-500 flex justify-between gap-2">
+                <button type="button" onclick="fillDemo('admin','123456')" class="text-emerald-700 font-semibold hover:underline text-left">Tài khoản Admin (admin/123456)</button>
+                <button type="button" onclick="fillDemo('letan01','123456')" class="text-blue-700 font-semibold hover:underline text-right">Tài khoản Lễ tân (letan01/123456)</button>
+            </div>
         </div>
     </div>
 
@@ -251,19 +254,18 @@
                 <select id="hv-gender" class="w-full px-3 py-2 border rounded-xl text-sm">
                     <option value="Nam">Nam</option>
                     <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
                 </select>
             </div>
-            <input type="text" id="hv-phone" placeholder="Số điện thoại (Duy nhất) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <input type="text" id="hv-phone" placeholder="Số điện thoại *" class="w-full px-3 py-2 border rounded-xl text-sm" />
             <input type="email" id="hv-email" placeholder="Email" class="w-full px-3 py-2 border rounded-xl text-sm" />
             <input type="text" id="hv-address" placeholder="Địa chỉ" class="w-full px-3 py-2 border rounded-xl text-sm" />
             <select id="hv-status" class="w-full px-3 py-2 border rounded-xl text-sm">
                 <option value="HOAT_DONG">Hoạt động</option>
-                <option value="TAM_KHOA">Tạm khóa</option>
+                <option value="NGUNG_HOAT_DONG">Ngừng hoạt động</option>
             </select>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal('modal-member')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
-                <button onclick="saveMember()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Lưu CSDL</button>
+                <button onclick="saveMember()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Lưu Thông Tin</button>
             </div>
         </div>
     </div>
@@ -278,9 +280,9 @@
                 <input type="number" id="pkg-months" placeholder="Thời hạn (tháng) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
                 <input type="number" id="pkg-price" placeholder="Giá tiền (VNĐ) *" class="w-full px-3 py-2 border rounded-xl text-sm" />
             </div>
-            <textarea id="pkg-desc" placeholder="Mô tả quyền lợi gói tập" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+            <textarea id="pkg-desc" placeholder="Mô tả quyền lợi..." class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
             <select id="pkg-status" class="w-full px-3 py-2 border rounded-xl text-sm">
-                <option value="HOAT_DONG">Đang bán</option>
+                <option value="HOAT_DONG">Đang mở bán</option>
                 <option value="NGUNG_BAN">Ngừng bán</option>
             </select>
             <div class="flex justify-end gap-2 pt-2">
@@ -306,17 +308,19 @@
                 <label class="text-xs font-semibold text-slate-500">Ngày Bắt Đầu</label>
                 <input type="date" id="reg-start" class="w-full px-3 py-2 border rounded-xl text-sm mt-1" />
             </div>
-            <div>
-                <label class="text-xs font-semibold text-slate-500">Số Tiền Thu Ngay (Để 0 nếu tạo phiếu chờ thu phí)</label>
-                <input type="number" id="reg-paid" value="0" class="w-full px-3 py-2 border rounded-xl text-sm mt-1" />
-            </div>
-            <div>
-                <label class="text-xs font-semibold text-slate-500">Phương Thức Thanh Toán</label>
-                <select id="reg-method" class="w-full px-3 py-2 border rounded-xl text-sm mt-1">
-                    <option value="TIEN_MAT">Tiền mặt</option>
-                    <option value="CHUYEN_KHOAN">Chuyển khoản</option>
-                    <option value="THE">Quẹt thẻ</option>
-                </select>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-semibold text-slate-500">Số Tiền Thu Ngay</label>
+                    <input type="number" id="reg-paid" class="w-full px-3 py-2 border rounded-xl text-sm mt-1" />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500">Hình Thức</label>
+                    <select id="reg-method" class="w-full px-3 py-2 border rounded-xl text-sm mt-1">
+                        <option value="TIEN_MAT">Tiền mặt</option>
+                        <option value="CHUYEN_KHOAN">Chuyển khoản</option>
+                        <option value="THE">Quẹt thẻ</option>
+                    </select>
+                </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal('modal-register')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
@@ -331,15 +335,14 @@
             <h3 class="text-lg font-bold">Ghi Nhận Thanh Toán</h3>
             <input type="hidden" id="pay-dk-id" />
             <div class="text-sm text-slate-600" id="pay-info"></div>
-            <input type="number" id="pay-amount" placeholder="Số tiền thu (VNĐ)" class="w-full px-3 py-2 border rounded-xl text-sm" />
+            <input type="number" id="pay-amount" class="w-full px-3 py-2 border rounded-xl text-sm" />
             <select id="pay-method" class="w-full px-3 py-2 border rounded-xl text-sm">
                 <option value="TIEN_MAT">Tiền mặt</option>
                 <option value="CHUYEN_KHOAN">Chuyển khoản</option>
-                <option value="THE">Quẹt thẻ</option>
             </select>
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal('modal-payment')" class="px-4 py-2 border rounded-xl text-sm">Hủy</button>
-                <button onclick="submitPayment()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">Xác Nhận Thu Tiền</button>
+                <button onclick="submitPayment()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold">Thu Tiền</button>
             </div>
         </div>
     </div>
@@ -440,18 +443,18 @@
             const kw = document.getElementById('search-member').value.toLowerCase();
             const list = db.hoi_vien.filter(m => m.ho_ten.toLowerCase().includes(kw) || m.so_dien_thoai.includes(kw));
             document.getElementById('table-members').innerHTML = list.map(m => `
-            <tr class="hover:bg-slate-50">
-              <td class="p-3 md:p-4 font-bold text-emerald-700">#HV${m.ma_hv}</td>
-              <td class="p-3 md:p-4 font-semibold">${m.ho_ten}</td>
-              <td class="p-3 md:p-4 text-slate-500">${m.gioi_tinh || ''} • ${m.ngay_sinh || ''}</td>
-              <td class="p-3 md:p-4 font-mono">${m.so_dien_thoai}</td>
-              <td class="p-3 md:p-4 text-slate-500">${m.dia_chi || ''}</td>
-              <td class="p-3 md:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${m.trang_thai}</span></td>
-              <td class="p-3 md:p-4 text-right">
-                <button onclick='openMemberModal(${JSON.stringify(m)})' class="text-blue-600 hover:underline font-semibold text-xs">Sửa</button>
-              </td>
-            </tr>
-          `).join('');
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 md:p-4 font-bold text-emerald-700">#HV${m.ma_hv}</td>
+                        <td class="p-3 md:p-4 font-semibold">${m.ho_ten}</td>
+                        <td class="p-3 md:p-4 text-slate-500">${m.gioi_tinh || ''} • ${m.ngay_sinh || ''}</td>
+                        <td class="p-3 md:p-4 font-mono">${m.so_dien_thoai}</td>
+                        <td class="p-3 md:p-4 text-slate-500">${m.dia_chi || ''}</td>
+                        <td class="p-3 md:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${m.trang_thai}</span></td>
+                        <td class="p-3 md:p-4 text-right">
+                            <button onclick='openMemberModal(${JSON.stringify(m)})' class="text-blue-600 hover:underline font-semibold text-xs">Sửa</button>
+                        </td>
+                    </tr>
+                `).join('');
         }
 
         function openMemberModal(m = null) {
@@ -489,18 +492,18 @@
         function renderPackages() {
             const isAdmin = currentUser?.vai_tro === 'ADMIN';
             document.getElementById('grid-packages').innerHTML = db.goi_tap.map(p => `
-            <div class="bg-white p-5 rounded-2xl shadow-sm border flex flex-col justify-between">
-              <div>
-                <div class="flex justify-between items-start gap-2">
-                  <h4 class="font-bold text-lg text-slate-900">${p.ten_goi}</h4>
-                  <span class="shrink-0 px-2 py-0.5 rounded text-xs font-semibold ${p.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">${p.trang_thai}</span>
-                </div>
-                <div class="text-2xl font-extrabold text-emerald-600 my-2">${fmtMoney(p.gia)} <span class="text-xs font-normal text-slate-500">/ ${p.thoi_han_thang} tháng</span></div>
-                <p class="text-sm text-slate-600">${p.mo_ta || ''}</p>
-              </div>
-              ${isAdmin ? `<button onclick='openPackageModal(${JSON.stringify(p)})' class="mt-4 w-full py-2 border rounded-xl text-xs font-semibold hover:bg-slate-50">Chỉnh sửa gói</button>` : ''}
-            </div>
-          `).join('');
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2">
+                                <h4 class="font-bold text-lg text-slate-900">${p.ten_goi}</h4>
+                                <span class="shrink-0 px-2 py-0.5 rounded text-xs font-semibold ${p.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">${p.trang_thai}</span>
+                            </div>
+                            <div class="text-2xl font-extrabold text-emerald-600 my-2">${fmtMoney(p.gia)} <span class="text-xs font-normal text-slate-500">/ ${p.thoi_han_thang} tháng</span></div>
+                            <p class="text-sm text-slate-600">${p.mo_ta || ''}</p>
+                        </div>
+                        ${isAdmin ? `<button onclick='openPackageModal(${JSON.stringify(p)})' class="mt-4 w-full py-2 border rounded-xl text-xs font-semibold hover:bg-slate-50">Chỉnh sửa gói</button>` : ''}
+                    </div>
+                `).join('');
         }
 
         function openPackageModal(p = null) {
@@ -534,17 +537,17 @@
             document.getElementById('table-registrations').innerHTML = db.dang_ky_goi.map(d => {
                 const remain = Number(d.tong_tien) - Number(d.da_thanh_toan);
                 return `
-            <tr class="hover:bg-slate-50">
-              <td class="p-3 md:p-4 font-bold">#DK${d.ma_dk}</td>
-              <td class="p-3 md:p-4"><div class="font-semibold">${d.ten_hv}</div><div class="text-xs text-slate-500">${d.so_dien_thoai}</div></td>
-              <td class="p-3 md:p-4 font-medium">${d.ten_goi}</td>
-              <td class="p-3 md:p-4 text-xs">${d.ngay_bat_dau} → ${d.ngay_ket_thuc}</td>
-              <td class="p-3 md:p-4 font-semibold"><span class="text-emerald-600">${fmtMoney(d.da_thanh_toan)}</span> / ${fmtMoney(d.tong_tien)}</td>
-              <td class="p-3 md:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${d.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${d.trang_thai}</span></td>
-              <td class="p-3 md:p-4 text-right">
-                ${remain > 0 ? `<button onclick="openPaymentModal(${d.ma_dk}, ${remain})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold">Thu thêm (${fmtMoney(remain)})</button>` : '<span class="text-xs text-emerald-600 font-semibold">Đã đủ tiền</span>'}
-              </td>
-            </tr>`;
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 md:p-4 font-bold">#DK${d.ma_dk}</td>
+                        <td class="p-3 md:p-4"><div class="font-semibold">${d.ten_hv}</div><div class="text-xs text-slate-500">${d.so_dien_thoai}</div></td>
+                        <td class="p-3 md:p-4 font-medium">${d.ten_goi}</td>
+                        <td class="p-3 md:p-4 text-xs">${d.ngay_bat_dau} → ${d.ngay_ket_thuc}</td>
+                        <td class="p-3 md:p-4 font-semibold"><span class="text-emerald-600">${fmtMoney(d.da_thanh_toan)}</span> / ${fmtMoney(d.tong_tien)}</td>
+                        <td class="p-3 md:p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${d.trang_thai === 'HOAT_DONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${d.trang_thai}</span></td>
+                        <td class="p-3 md:p-4 text-right">
+                            ${remain > 0 ? `<button onclick="openPaymentModal(${d.ma_dk}, ${remain})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold">Thu thêm (${fmtMoney(remain)})</button>` : '<span class="text-xs text-emerald-600 font-semibold">Đã đủ tiền</span>'}
+                        </td>
+                    </tr>`;
             }).join('');
         }
 
@@ -603,17 +606,17 @@
         // UC04: Điểm danh
         function renderAttendance() {
             document.getElementById('table-attendance').innerHTML = db.diem_danh.map(a => `
-            <tr class="hover:bg-slate-50">
-              <td class="p-3 md:p-4 font-bold">#DD${a.ma_dd}</td>
-              <td class="p-3 md:p-4 font-semibold">${a.ten_hv}</td>
-              <td class="p-3 md:p-4 font-mono">${a.so_dien_thoai}</td>
-              <td class="p-3 md:p-4 text-emerald-700 font-medium">${a.thoi_gian_vao}</td>
-              <td class="p-3 md:p-4">${a.thoi_gian_ra || '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Đang tập...</span>'}</td>
-              <td class="p-3 md:p-4 text-right">
-                ${!a.thoi_gian_ra ? `<button onclick="handleCheckout(${a.ma_dd})" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-semibold">Check-out</button>` : '<span class="text-xs text-slate-400">Hoàn tất</span>'}
-              </td>
-            </tr>
-          `).join('');
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 md:p-4 font-bold">#DD${a.ma_dd}</td>
+                        <td class="p-3 md:p-4 font-semibold">${a.ten_hv}</td>
+                        <td class="p-3 md:p-4 font-mono">${a.so_dien_thoai}</td>
+                        <td class="p-3 md:p-4 text-emerald-700 font-medium">${a.thoi_gian_vao}</td>
+                        <td class="p-3 md:p-4">${a.thoi_gian_ra || '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-semibold">Đang tập...</span>'}</td>
+                        <td class="p-3 md:p-4 text-right">
+                            ${!a.thoi_gian_ra ? `<button onclick="handleCheckout(${a.ma_dd})" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-semibold">Check-out</button>` : '<span class="text-xs text-slate-400">Hoàn tất</span>'}
+                        </td>
+                    </tr>
+                `).join('');
         }
 
         async function handleCheckin() {
